@@ -7,56 +7,47 @@
 * Define a Point in range [-128, -128] to [127, 127]
 *
 * ! initialize on create
-* ! internal modify only
+* ! read - only
 */
 class Point {
-	// friend class Piece;
-protected:
-	int8_t px, py;
-#ifndef NDEBUG
-	bool init;
-#endif // DEBUG
+public:
+	union {
+		struct {
+			const int16_t x, y;
+		};
+		const int32_t data;
+	};
+
+	// default constructor
+	inline Point() : x(0), y(0) {}
+	// constructor
+	inline Point(int16_t x, int16_t y) : x(x), y(y) {}
+	// copy constructor
+	inline Point(const Point& point) : data(point.data) {}
+	// copy operator
+	inline void operator=(const Point& point) {
+		this->~Point();
+		new(this) Point(point);
+	}
+
+	// misc, compare two Point
+	inline bool operator==(const Point& point) const {
+		return data == point.data;
+	}
+	// misc, compare two Point
+	inline bool operator!=(const Point& point) const {
+		return data != point.data;
+	}
 
 public:
-#ifndef NDEBUG
-	// default constructor
-	inline Point() : init(false) {}
-	// constructor
-	inline Point(int8_t x, int8_t y) : px(x), py(y), init(true) {}
-#else
-	// default constructor
-	inline Point() {}
-	// constructor
-	inline Point(int8_t x, int8_t y) : px(x), py(y) {}
-#endif // !NDEBUG
-
-	// get Point.X
-	inline int8_t getX() {
-		assert(init);
-		return px;
+	// Check if point C is on line AB
+	static inline bool isOnLine(const Point& a, const Point& b, const Point& c) {
+		return ((a.y - b.y) * (c.x - a.x) + (b.x - a.x) * (c.y - a.y)) == 0;
 	}
 
-	// get Point.Y
-	inline int8_t getY() {
-		assert(init);
-		return py;
-	}
-
-	// copy
-	// the default copy is good enough, no need to write a new one
-
-	// add two Point
-	inline void operator+=(Point& point) {
-		assert(init);
-		px += point.px;
-		py += point.py;
-	}
-
-	// subtract two Point
-	inline void operator-=(Point& point) {
-		assert(init);
-		px -= point.px;
-		py -= point.py;
+	// Check if point C in in line segment AB
+	static inline bool isOnSegment(const Point& a, const Point& b, const Point& c) {
+		return (c.y >= min(a.y, b.y) && c.y <= max(a.y, b.y) && c.x >= min(a.x, b.x) && c.x <= max(a.x, b.x)) && isOnLine(a, b, c);
 	}
 };
 
